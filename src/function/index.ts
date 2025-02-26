@@ -52,7 +52,7 @@ app.get('/test', async (req, res) => { res.send('ok'); });
 
 app.get('/test2', async (req, res) => {
   const data = await db.getData('User', { id: 1 });
-  //res.send('ok'); 
+  //res.sen('ok'); 
   res.send(data);
 });
 
