@@ -2,6 +2,7 @@ import { Admin, DataSource } from "typeorm";
 
 // 导入数据库实体：用户
 import User from "../entities/user";
+import BlackList from "../entities/blacklist";
 
 const AppDataSource = new DataSource({
   type: "mysql",// 数据库类型
@@ -13,7 +14,16 @@ const AppDataSource = new DataSource({
   database: "blacklist",
   entities: [User],// 需要使用的数据库实体
   driver: require('mysql2'),
-});
+}); 
+
+
+
+/* const AppDataSource = new DataSource({
+  type: "sqlite",// 数据库类型
+  //host: "10.135.227.73",// 数据库ip
+  database,
+
+}); */
 
 let sqlConnect: DataSource;
 export const connectDB = async () => {
@@ -23,6 +33,7 @@ export const connectDB = async () => {
 // https://typeorm.io/repository-api
 type TypeMap = {
   User: User;
+  BlackList: BlackList;
 };
 
 const getDBRepository = async<K extends keyof TypeMap>(whichDB: K) => {
@@ -202,7 +213,7 @@ export const update = async <K extends keyof TypeMap>(whichDB: K, queryData: Rec
  * @param query 查询条件<字符串>
  * @returns 
  */
-export const query = async<K extends keyof TypeMap>(query: string): Promise<any | null> => {
+/* export const query = async<K extends keyof TypeMap>(query: string): Promise<any | null> => {
 
   try {
     const result = await sqlConnect.query(query);
@@ -210,6 +221,36 @@ export const query = async<K extends keyof TypeMap>(query: string): Promise<any 
   } catch (err) {
     return err;
   }
-};
+}; */
 
+export const query = async <K extends keyof TypeMap>(
+  sql: string,
+  params?: string | number | (string | number)[] | null
+): Promise<any | null> => {
+  try {
+    // 如果没有参数，直接执行
+    if (params === undefined || params === null) {
+      const result = await sqlConnect.query(sql);
+      return result;
+    }
+
+    // 统一处理成数组形式
+    const paramArray = Array.isArray(params) ? params : [params];
+
+    // 检查 SQL 中的 ? 数量是否和参数数量匹配
+    const questionMarkCount = (sql.match(/\?/g) || []).length;
+    if (questionMarkCount !== paramArray.length) {
+      throw new Error(
+        `参数数量不匹配: SQL 有 ${questionMarkCount} 个 ?, 但传入了 ${paramArray.length} 个参数`
+      );
+    }
+
+    // 执行参数化查询（假设 sqlConnect.query 支持 ? 替换）
+    const result = await sqlConnect.query(sql, paramArray);
+    return result;
+  } catch (err) {
+    console.error("SQL 执行错误:", err);
+    return null;
+  }
+};
 

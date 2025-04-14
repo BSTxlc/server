@@ -10,8 +10,7 @@ import { get } from 'http';
 // import formidable from 'formidable';这个库是处理表单提交的
 // typeorm ts logger
 // 需要修改的内容
-import { getUserById, getUserByName } from './mapper';
-
+import { getUserById, getUserByName, getBlackDetailById, delBlackById,getCheckDetailById} from './mapper';
 
 const port = 17515;// http服务的端口
 
@@ -108,13 +107,13 @@ app.get('/query', async (req, res) => {
   res.send(a);
 });
 
-
-app.get('/getParam', async (req, res) => {
+//查询黑名单
+app.get('/api/blacklist/get', async (req, res) => {
   // For route parameters like '/insert/:id'
   //const routeParams = req.params;
 
   const { id, name } = req.query;
-  let result: string = '';
+  let result: string = 'No Params';
 
   //id不为空
   if (id != null && id != '' && id != undefined) {  // 如果 id 是 undefined、null 或空字符串 ''
@@ -136,5 +135,63 @@ app.get('/getParam', async (req, res) => {
   return false;
 });
 
+//查询黑名单详情
+app.get('/api/blacklist/getDetail', async (req, res) => {
+
+  const { id } = req.query;
+  let result: string = 'No Params';
+
+  if (id != null && id != '' && id != undefined) {  // 如果 id 是 undefined、null 或空字符串 ''
+    result = await getBlackDetailById(Number(id));
+    res.send(result);
+    return;
+  }
+
+});
+
+
+app.get('/api/blacklist/del', async (req, res) => {
+
+  const { id } = req.query;
+  if (Number(id) == 0) {
+
+  } else {
+    return Error(500);
+  }
+
+
+  const a = await delBlackById(Number(id)) //这个东西返回是一个数组
+  res.send(a);
+});
+
+
+//查询审核表详情
+app.get('/api/check/getDetail', async (req, res) => {
+
+  const { id } = req.query;
+  let result: string = 'No Params';
+
+  if (id != null && id != '' && id != undefined) {  // 如果 id 是 undefined、null 或空字符串 ''
+    result = await getBlackDetailById(Number(id));
+    res.send(result);
+    return;
+  }
+
+});
+
+//获取状态码
+async function Error(error) {
+  switch (error) {
+    case 500: //500 內部異常
+      return '500';
+  }
+
+  return error;
+}
+
+//获取状态码正确
+async function success() {
+  return 200;
+}
 
 
