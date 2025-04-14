@@ -3,7 +3,7 @@ import { Admin, DataSource } from "typeorm";
 // 导入数据库实体：用户
 import User from "../entities/user";
 
-const AppDataSource = new DataSource({
+/* const AppDataSource = new DataSource({
   type: "mysql",// 数据库类型
   //host: "10.135.227.73",// 数据库ip
   host: "localhost",// 数据库ip
@@ -13,6 +13,13 @@ const AppDataSource = new DataSource({
   database: "blacklist",
   entities: [User] ,// 需要使用的数据库实体
   driver: require('mysql2'),
+}); */
+
+const AppDataSource = new DataSource({
+  type: "sqlite",// 数据库类型
+  //host: "10.135.227.73",// 数据库ip
+  database: "blacklist",
+  entities: [User]// 需要使用的数据库实体
 });
 
 export const connectDB = async () => {
@@ -148,4 +155,15 @@ export const getCount = async<K extends keyof TypeMap>(whichDB: K, query: Record
 // {
 //   const repository = await getDBRepository(whichDB);
 // };
-
+export const query = async<K extends keyof TypeMap>(query: string): Promise<any | null> =>
+  {
+    try
+    {
+      const result = await AppDataSource.query(query);
+      return result;
+    } catch (err)
+    {
+      console.log(err);
+      return null;
+    }
+  };
