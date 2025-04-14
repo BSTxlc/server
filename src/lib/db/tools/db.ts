@@ -1,7 +1,8 @@
-import { Admin, DataSource } from "typeorm";
+import { DataSource } from "typeorm";
 
 // 导入数据库实体：用户
 import User from "../entities/user";
+import Admin from '../entities/admin';
 
 /* const AppDataSource = new DataSource({
   type: "mysql",// 数据库类型
@@ -18,20 +19,23 @@ import User from "../entities/user";
 const AppDataSource = new DataSource({
   type: "sqlite",// 数据库类型
   //host: "10.135.227.73",// 数据库ip
-  database: "blacklist",
-  entities: [User]// 需要使用的数据库实体
+  database: "blacklist.db",
+  entities: [User, Admin]// 需要使用的数据库实体
 });
 
-export const connectDB = async () => {
+export const connectDB = async () =>
+{
   await AppDataSource.initialize();
 };
 
 // https://typeorm.io/repository-api
 type TypeMap = {
   User: User;
+  Admin: Admin;
 };
 
-const getDBRepository = async<K extends keyof TypeMap>(whichDB: K) => {
+const getDBRepository = async<K extends keyof TypeMap>(whichDB: K) =>
+{
   // const dbName = whichDB.toLowerCase();
   // const a = await import('../entities/' + dbName);
   // const userRepository = AppDataSource.getRepository(a.default);
@@ -44,7 +48,8 @@ const getDBRepository = async<K extends keyof TypeMap>(whichDB: K) => {
 };
 
 
-const getDBEntities = async<K extends keyof TypeMap>(whichDB: K) => {
+const getDBEntities = async<K extends keyof TypeMap>(whichDB: K) =>
+{
   const dbName = whichDB.toLowerCase();
   const a = await import('../entities/' + dbName);
   return a.default;
@@ -56,19 +61,23 @@ const getDBEntities = async<K extends keyof TypeMap>(whichDB: K) => {
  * @param data 保存的数据
  * @returns 结果？
  */
-export const saveData = async <K extends keyof TypeMap>(whichDB: K, data: TypeMap[K]) => {
+export const saveData = async <K extends keyof TypeMap>(whichDB: K, data: TypeMap[K]) =>
+{
   //   const repository = await getDBRepository(whichDB);
   //   return await repository.manager.save(data); // 保存数据到相应的数据库
   const queryRunner = await getDBRepository(whichDB);
-  try {
+  try
+  {
     const entity = await getDBEntities(whichDB);
     const result = await queryRunner.manager.save(entity, data);
     await queryRunner.commitTransaction();
     return result;
-  } catch (err) {
+  } catch (err)
+  {
     await queryRunner.rollbackTransaction();
     throw err; // 抛出错误便于外部捕获和调试
-  } finally {
+  } finally
+  {
     await queryRunner.release();
   }
 };
@@ -82,15 +91,18 @@ export const saveData = async <K extends keyof TypeMap>(whichDB: K, data: TypeMa
  * @param skip 跳过数量
  * @returns array结果
  */
-export const getData = async<K extends keyof TypeMap>(whichDB: K, query: Record<string, any>, take?: number, skip?: number) => {
+export const getData = async<K extends keyof TypeMap>(whichDB: K, query: Record<string, any>, take?: number, skip?: number) =>
+{
   const repository = await getDBRepository(whichDB);
-  try {
+  try
+  {
     const result = await repository.manager.find(await getDBEntities(whichDB), {
       where: query,
       lock: { mode: 'pessimistic_write' }
     });
 
-    if (result.length === 0) {
+    if (result.length === 0)
+    {
       return null;
     }
 
@@ -100,11 +112,13 @@ export const getData = async<K extends keyof TypeMap>(whichDB: K, query: Record<
 
     await repository.commitTransaction();
     return paginatedData;
-  } catch (err) {
+  } catch (err)
+  {
     // console.log(err);
     await repository.rollbackTransaction();
     return null;
-  } finally {
+  } finally
+  {
     await repository.release();
   }
 };
@@ -115,38 +129,46 @@ export const getData = async<K extends keyof TypeMap>(whichDB: K, query: Record<
  * @returns Promise<查询条件>
  */
 // export const removeData = async<K extends keyof TypeMap>(whichDB: K) =>
-export const removeData = async<K extends keyof TypeMap>(whichDB: K, query: Record<string, any>) => {
+export const removeData = async<K extends keyof TypeMap>(whichDB: K, query: Record<string, any>) =>
+{
   const repository = await getDBRepository(whichDB);
 
-  try {
+  try
+  {
     const result = await repository.manager.delete(await getDBEntities(whichDB), query);
     await repository.commitTransaction();
     return result;
-  } catch (err) {
+  } catch (err)
+  {
     await repository.rollbackTransaction();
     return null;
-  } finally {
+  } finally
+  {
     await repository.release();
   }
 
   // return repository.delete;
 };
 
-export const getCount = async<K extends keyof TypeMap>(whichDB: K, query: Record<string, any>) => {
+export const getCount = async<K extends keyof TypeMap>(whichDB: K, query: Record<string, any>) =>
+{
   const repository = await getDBRepository(whichDB);
 
   // const count = await repository.countBy(query);
 
   // return count;
 
-  try {
+  try
+  {
     const result = await repository.manager.countBy(await getDBEntities(whichDB), query);
     await repository.commitTransaction();
     return result;
-  } catch (err) {
+  } catch (err)
+  {
     await repository.rollbackTransaction();
     return null;
-  } finally {
+  } finally
+  {
     await repository.release();
   }
 };
@@ -156,14 +178,14 @@ export const getCount = async<K extends keyof TypeMap>(whichDB: K, query: Record
 //   const repository = await getDBRepository(whichDB);
 // };
 export const query = async<K extends keyof TypeMap>(query: string): Promise<any | null> =>
+{
+  try
   {
-    try
-    {
-      const result = await AppDataSource.query(query);
-      return result;
-    } catch (err)
-    {
-      console.log(err);
-      return null;
-    }
-  };
+    const result = await AppDataSource.query(query);
+    return result;
+  } catch (err)
+  {
+    console.log(err);
+    return null;
+  }
+};
