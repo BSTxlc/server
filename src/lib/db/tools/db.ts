@@ -1,4 +1,4 @@
-import { Admin, DataSource } from "typeorm";
+import { DataSource } from "typeorm";
 
 // 导入数据库实体：用户
 import User from "../entities/user";
@@ -36,7 +36,8 @@ type TypeMap = {
   BlackList: BlackList;
 };
 
-const getDBRepository = async<K extends keyof TypeMap>(whichDB: K) => {
+const getDBRepository = async<K extends keyof TypeMap>(whichDB: K) =>
+{
   // const dbName = whichDB.toLowerCase();
   // const a = await import('../entities/' + dbName);
   // const userRepository = AppDataSource.getRepository(a.default);
@@ -49,7 +50,8 @@ const getDBRepository = async<K extends keyof TypeMap>(whichDB: K) => {
 };
 
 
-const getDBEntities = async<K extends keyof TypeMap>(whichDB: K) => {
+const getDBEntities = async<K extends keyof TypeMap>(whichDB: K) =>
+{
   const dbName = whichDB.toLowerCase();
   const a = await import('../entities/' + dbName);
   return a.default;
