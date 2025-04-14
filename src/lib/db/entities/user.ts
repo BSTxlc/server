@@ -7,7 +7,7 @@ export default class User
   id: number;
 
   @Column()
-  openid: string;
+  uid: string; // 原来的 uid 改为 openid
 
   @Column()
   avatar: string;
@@ -16,5 +16,24 @@ export default class User
   nickname: string;
 
   @Column()
-  role: string;// 权限
+  role: string; // role 存储字符串，避免类型冲突
+
+  @Column()
+  username: string;
+
+  @Column()
+  password: string;
+
+  @Column()
+  create_by: string;
+
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  creation_date: Date;
+
+  @Column()
+  last_update_by: string;
+
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP", onUpdate: "CURRENT_TIMESTAMP" })
+  last_update_date: Date;
+
 }

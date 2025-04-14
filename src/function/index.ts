@@ -5,9 +5,14 @@ import winston from "winston";
 import fs from 'fs';
 import path from 'path';
 import { log } from 'console';
+import User from '../lib/db/entities/user';
+import { get } from 'http';
 // import formidable from 'formidable';这个库是处理表单提交的
 // typeorm ts logger
 // 需要修改的内容
+import { getUserById, getUserByName } from './mapper';
+
+
 const port = 17515;// http服务的端口
 
 const app = express();
@@ -50,9 +55,86 @@ app.listen(port, () => {
 
 app.get('/test', async (req, res) => { res.send('ok'); });
 
-app.get('/test2', async (req, res) => {
-  const data = await db.getData('User', { id: 1 });
-  //res.sen('ok'); 
-  res.send(data);
+app.get('/select', async (req, res) => {
+
+  const a = await db.select("User", { id: 1 }); //这个东西返回是一个数组
+  res.send(a);
 });
+
+
+app.get('/update', async (req, res) => {
+
+  const a = await db.update("User", 1, { role: 999 }); //这个东西返回是一个数组
+  res.send(a);
+});
+
+app.get('/remove', async (req, res) => {
+
+  const a = await db.remove("User", { id: 2 }); //这个东西返回是一个数组
+  res.send(a);
+});
+
+
+app.get('/insert', async (req, res) => {
+
+  const b = await function (
+
+
+  ) {
+
+  }
+
+  const a = await db.insert("User", {
+    id: 2,
+    uid: 'U1002',
+    avatar: 'https://example.com/avatar2.jpg',
+    nickname: 'Bob',
+    role: 2,
+    username: 'bob_member',
+    password: 'hashed_password_2',
+    create_by: 'alice_admin',
+    creation_date: new Date(),
+    last_update_by: 'alice_admin',
+    last_update_date: new Date()
+  });
+  res.send(a);
+})
+
+
+
+app.get('/query', async (req, res) => {
+
+  const a = await db.query('select  t.id  from admin t ,user l  where t.user_id = l.id and l.id = 1 '); //这个东西返回是一个数组
+  res.send(a);
+});
+
+
+app.get('/getParam', async (req, res) => {
+  // For route parameters like '/insert/:id'
+  //const routeParams = req.params;
+
+  const { id, name } = req.query;
+  let result: string = '';
+
+  //id不为空
+  if (id != null && id != '' && id != undefined) {  // 如果 id 是 undefined、null 或空字符串 ''
+    result = await getUserById(Number(id));
+    res.send(result);
+    return;
+  }
+
+  //name不为空
+  if (name != null && name != '' && name != undefined) {  // 如果 id 是 undefined、null 或空字符串 ''
+    result = await getUserByName(name.toString());
+    res.send(result);
+    return;
+  }
+  // 1. 先定义函数
+  // 2. 再调用函数
+
+  res.send('id is null && name is null');
+  return false;
+});
+
+
 
