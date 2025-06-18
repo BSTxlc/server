@@ -1,8 +1,11 @@
-import { DataSource } from "typeorm";
+import { Check, DataSource } from "typeorm";
+import { EntityManager } from 'typeorm';
 
 // 导入数据库实体：用户
 import User from "../entities/user";
 import BlackList from "../entities/blacklist";
+import mysql from 'mysql2/promise';
+import checklist from "../entities/checklist";
 
 const AppDataSource = new DataSource({
   type: "mysql",// 数据库类型
@@ -12,7 +15,7 @@ const AppDataSource = new DataSource({
   username: "root",// 这块配置你整一手吧
   password: "1234",
   database: "blacklist",
-  entities: [User],// 需要使用的数据库实体
+  entities: [User,checklist],// 需要使用的数据库实体
   driver: require('mysql2'),
 });
 
@@ -30,6 +33,7 @@ export const connectDB = async () => {
 type TypeMap = {
   User: User;
   BlackList: BlackList;
+  Check: checklist;
 };
 
 const getDBRepository = async<K extends keyof TypeMap>(whichDB: K) => {
@@ -225,6 +229,17 @@ export const query = async <K extends keyof TypeMap>(
     return result;
   } catch (err) {
     console.error("SQL 执行错误:", err);
+    return null;
+  }
+};
+
+export const executeTransaction = async <T>(callback: (manager: EntityManager) => Promise<T>): Promise<T | null> => {
+  try {
+    // 开始事务
+    const result = await AppDataSource.transaction(callback);
+    return result;
+  } catch (err) {
+    console.error('Transaction failed:', err);
     return null;
   }
 };

@@ -8,7 +8,6 @@ import { log } from 'console';
 import User from '../lib/db/entities/user';
 import { get } from 'http';
 import exp from 'constants';
-import CheckList from '../lib/db/entities/checklist';
 
 
 export async function getUserById(id: number) {
@@ -23,7 +22,7 @@ export async function getUserByName(name: string) {
     //模糊  const res = db.select("User", { name: name });
 
     const res = await db.query(`SELECT u.avatar avatar,u.username name,u.id id ,b.reason reason,b.level level FROM blacklist b ,
-        user u  where 1=1 and b.user_id = u.id and( u.username like '%' ${name} '%' or u.username = ${name}) `); //这个东西返回是一个数组
+        user u  where 1=1 and b.user_id = u.id and u.nickname like '%' ${name} '%'`); //这个东西返回是一个数组
 
     return res;
 }
@@ -53,21 +52,12 @@ export async function getCheckDetailById(id: number) {
 }
 
 
-export async function insertCheckObjects(checkObjects) {
-    try {
-        await db.executeTransaction(async (manager) => {
-            for (const checkData of checkObjects) {
-                const check = manager.create(CheckList, checkData); // 创建实体
-                await manager.save(check); // 保存到数据库
-            }
-        });
-        console.log('Check objects inserted successfully');
-    } catch (error) {
-        console.error('Transaction failed:', error);
-    }
+export async function updateBlackListById(id: number) {
+    const res = await db.query(`SELECT u.avatar avatar,u.username name,u.id id,c.reason reason 
+        ,c.level level FROM check c,user u  where c.user_id = u.id and u.id = ${id}`);
+    return res;
+
 }
-
-
 export async function getBlackListLevel(id: number) {
     if(id != null){
         const res = await db.query(`SELECT * from blacklist where user_id = ${id}`);
@@ -101,7 +91,7 @@ export async function selectAllUserNames() {
 
 }
 
-export const userRegistry = async (username: string, password: string,role : number = 1) => {
+export const userRegistry = async (username: string, password: string) => {
     var uid = await selectUserFields(['uid'])
     console.log(uid)
     let uidValue = uid[0].uid as string; 
@@ -118,18 +108,14 @@ export const userRegistry = async (username: string, password: string,role : num
     user.uid = newUid;
     user.avatar = "";
     user.nickname = "";
-    user.role = "1";
+    user.role = "user";
     user.password = password;
-
-    if(role != 1){
-        user.role = role.toString();
-    }
-
+  
     const result = await db.insert("User", user);
     return result;
-};
+  };
 
-export async function userLogin(username: string, password: string) {
+  export async function userLogin(username: string, password: string) {
     const user = await selectUserFields(['password'],`username = '${username}'`);
     console.log(user)
     let userPassword = user[0].password as string; 
@@ -138,7 +124,7 @@ export async function userLogin(username: string, password: string) {
         return true;
     }
     return false;
-}
+  }
 
 
 
@@ -162,3 +148,4 @@ export async function selectUserFields(fields: (keyof User)[], where?: string) {
     const res = await db.query(sql);
     return res;
 }
+  
